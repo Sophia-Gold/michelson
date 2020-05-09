@@ -1,0 +1,164 @@
+parameter int;
+storage nat;
+code {
+       UNPAIR;
+       SWAP;
+       DROP;
+
+       DUP;
+       PUSH int 0;
+       IFCMPEQ
+         {
+           DROP;
+           PUSH nat 65536;
+         }
+         {
+           LAMBDA nat nat
+                  {
+                    # separate int and frac
+                    PUSH nat 65536;
+                    SWAP;
+                    EDIV;
+                    ASSERT_SOME;
+                    UNPAIR;
+
+                    # compute int part
+                    LAMBDA nat nat
+                           {
+                             PUSH nat 256;
+                             SWAP;
+                             EDIV;
+                             ASSERT_SOME;
+                             UNPAIR;
+                             INT;
+                             DIP { PUSH nat 65536 };
+                             PUSH bool True;
+                             LOOP
+                               {
+                                 DUP;
+                                 PUSH int 0;
+                                 IFCMPEQ { PUSH bool False; }
+                                         {
+                                           PUSH nat 1;
+                                           SWAP;
+                                           SUB;
+                                           DIP {
+                                                 PUSH nat 256;
+                                                 SWAP;
+                                                 LSL;
+                                               };
+                                           PUSH bool True;
+                                         };
+                               };
+                             DROP;
+                             LSL;
+                           };
+                    SWAP;
+                    EXEC;
+                    SWAP;
+                    DUP;
+                    PUSH nat 0;
+                    IFCMPEQ
+                      { DROP; }
+                      {
+                        # compute frac part with 8th degree chebyshev
+                        # coeffs from GP/PARI: `polchebyshev(1, 1, 2^x)`
+
+                        # add 16 bits of precision
+                        PUSH nat 16;
+                        SWAP;
+                        LSL;
+
+                        DUP;
+                        DUP;
+                        DUP;
+                        DUP;
+                        DUP;
+                        DUP;
+                        DUP;
+                        PUSH nat 5676;
+
+                        MUL;
+                        PUSH nat 32;
+                        SWAP;
+                        LSR;
+                        PUSH nat 65510;
+                        ADD;
+
+                        MUL;
+                        PUSH nat 32;
+                        SWAP;
+                        LSR;
+                        PUSH nat 661577;
+                        ADD;
+
+                        MUL;
+                        PUSH nat 32;
+                        SWAP;
+                        LSR;
+                        PUSH nat 5726720;
+                        ADD;
+
+                        MUL;
+                        PUSH nat 32;
+                        SWAP;
+                        LSR;
+                        PUSH nat 41309550;
+                        ADD;
+
+                        MUL;
+                        PUSH nat 32;
+                        SWAP;
+                        LSR;
+                        PUSH nat 238388332;
+                        ADD;
+
+                        MUL;
+                        PUSH nat 32;
+                        SWAP;
+                        LSR;
+                        PUSH nat 1031764991;
+                        ADD;
+
+                        MUL;
+                        PUSH nat 32;
+                        SWAP;
+                        LSR;
+                        PUSH nat 2977044472;
+                        ADD;
+
+                        MUL;
+                        PUSH nat 32;
+                        SWAP;
+                        LSR;
+                        PUSH nat 4294967296;
+                        ADD;
+
+                        # 2^int * 2^frac
+                        MUL;
+                        PUSH nat 32;
+                        SWAP;
+                        LSR;
+                      };
+                  };
+           SWAP;
+
+           DUP;
+           PUSH int 0;
+           SWAP;
+           IFCMPGT { ABS;
+                     EXEC;
+                   }
+                   {
+                     ABS;
+                     EXEC;
+                     PUSH nat 4294967296;
+                     EDIV;
+                     ASSERT_SOME;
+                     UNPAIR;
+                     SWAP;
+                     DROP;
+                   };
+         };
+       NIL operation; PAIR;
+     };

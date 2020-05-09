@@ -1,0 +1,112 @@
+parameter nat;
+storage int;
+code {
+       # based on http://www.claysturner.com/dsp/BinaryLogarithm.pdf
+       UNPAIR;
+       DUP;
+       PUSH nat 0;
+       IFCMPEQ { FAIL; }
+               {
+                 DIP {
+                       DROP;
+                       PUSH nat 32768;
+                       PUSH int 0;
+                     };
+
+                 # normalize >= 1
+                 PUSH bool True;
+                 LOOP
+                   {
+                     DUP;
+                     PUSH nat 65537;
+                     SWAP;
+                     IFCMPLT {
+                               PUSH nat 1;
+                               SWAP;
+                               LSL;
+                               DIP 2 { PUSH int 65536 };
+                               DIP { SUB; };
+                               PUSH bool True;
+                             }
+                             {
+                               PUSH bool False;
+                             };
+                   };
+
+                 # normalize < 2
+                 PUSH bool True;
+                 LOOP
+                   {
+                     DUP;
+                     PUSH nat 131072;
+                     SWAP;
+                     IFCMPGT {
+                               PUSH nat 1;
+                               SWAP;
+                               LSR;
+                               DIP {
+                                     PUSH int 65536;
+                                     ADD;
+                                   };
+                               PUSH bool True;
+                             }
+                             {
+                               PUSH bool False;
+                             };
+                   };
+
+                 PUSH nat 0;
+                 PUSH bool True;
+                 LOOP
+                   {
+                     DUP;
+                     PUSH nat 16;
+                     SWAP;
+                     IFCMPLT {
+                               PUSH nat 1;
+                               ADD;
+                               DIP
+                                 {
+                                   DUP;
+                                   MUL;
+                                   PUSH nat 16;
+                                   SWAP;
+                                   LSR;
+
+                                   # normalize < 2
+                                   DUP;
+                                   PUSH nat 131072;
+                                   SWAP;
+                                   IFCMPGT {
+                                             PUSH nat 1;
+                                             SWAP;
+                                             LSR;
+                                             DIP {
+                                                   DIP { DUP; };
+                                                   ADD;
+                                                 };
+                                           }
+                                           {
+                                           };
+
+                                   # shift mantissa right
+                                   DIP 2
+                                       {
+                                         PUSH nat 1;
+                                         SWAP;
+                                         LSR;
+                                       };
+                                 };
+                               PUSH bool True;
+                             }
+                             {
+                               PUSH bool False;
+                             };
+                   };
+                 DROP;
+                 DROP;
+                 SWAP;
+                 DROP;
+                 NIL operation; PAIR;
+               };
+     };
