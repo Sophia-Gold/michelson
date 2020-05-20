@@ -61,77 +61,28 @@ code {
                     IFCMPEQ
                       { DROP; }
                       {
-                        # compute frac part with 8th degree chebyshev
-                        # coeffs from GP/PARI: `polchebyshev(1, 1, 2^x)`
+                        # compute frac part
 
                         # add 16 bits of precision
                         PUSH nat 16;
                         SWAP;
                         LSL;
+                        PUSH nat 0;
 
-                        DUP;
-                        DUP;
-                        DUP;
-                        DUP;
-                        DUP;
-                        DUP;
-                        DUP;
-                        PUSH nat 5676;
+                        # chebyshev coeffs from GP/PARI: `polchebyshev(1, 1, 2^x)`
+                        PUSH (list nat) { 5676; 65510; 661577; 5726720; 41309550; 238388332; 1031764991; 2977044472; };
 
-                        MUL;
-                        PUSH nat 32;
-                        SWAP;
-                        LSR;
-                        PUSH nat 65510;
-                        ADD;
-
-                        MUL;
-                        PUSH nat 32;
-                        SWAP;
-                        LSR;
-                        PUSH nat 661577;
-                        ADD;
-
-                        MUL;
-                        PUSH nat 32;
-                        SWAP;
-                        LSR;
-                        PUSH nat 5726720;
-                        ADD;
-
-                        MUL;
-                        PUSH nat 32;
-                        SWAP;
-                        LSR;
-                        PUSH nat 41309550;
-                        ADD;
-
-                        MUL;
-                        PUSH nat 32;
-                        SWAP;
-                        LSR;
-                        PUSH nat 238388332;
-                        ADD;
-
-                        MUL;
-                        PUSH nat 32;
-                        SWAP;
-                        LSR;
-                        PUSH nat 1031764991;
-                        ADD;
-
-                        MUL;
-                        PUSH nat 32;
-                        SWAP;
-                        LSR;
-                        PUSH nat 2977044472;
-                        ADD;
-
-                        MUL;
-                        PUSH nat 32;
-                        SWAP;
-                        LSR;
-                        PUSH nat 4294967296;
+                        ITER
+                          {
+                            ADD;
+                            DIP { DUP };
+                            MUL;
+                            PUSH nat 32;
+                            SWAP;
+                            LSR;
+                          };
+                        DIP { DROP };
+                        PUSH nat 4294967296; # 1 << 32
                         ADD;
 
                         # 2^int * 2^frac
